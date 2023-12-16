@@ -186,7 +186,7 @@ const paginacion = () => {
 
             <Row gutter={16}>
               <Col className="gutter-row" xs={24} sm={24} md={24} lg={24}>
-                <Title level={3}>Opciones para numerar páginas</Title>
+                <Title level={3}>Opciones de números de página</Title>
                 <Divider />
               </Col>
               <Col className="gutter-row" xs={24} sm={24} md={24} lg={24}>
