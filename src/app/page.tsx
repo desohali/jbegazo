@@ -4,6 +4,7 @@ import * as React from 'react';
 import swal from 'sweetalert';
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 import { FilePdfOutlined, DeleteOutlined } from '@ant-design/icons';
+import Loading from './loading';
 
 
 
@@ -56,6 +57,11 @@ const paginacion = () => {
   const [paginas, setPaginas] = React.useState<number>(0);
   const [isFile, setIsFile] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(false);
+
+  const [loadingPage, setloadingPage] = React.useState<Boolean>(true);
+  React.useEffect(() => {
+    setloadingPage(false);
+  }, []);
 
   const paginarPDF = (file: any) => {
     setLoading(true);
@@ -132,7 +138,7 @@ const paginacion = () => {
   React.useEffect(() => {
 
     canvas = document.querySelector("canvas")
-    ctx = canvas.getContext('2d');
+    ctx = canvas?.getContext('2d');
 
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js';
@@ -148,7 +154,7 @@ const paginacion = () => {
       // Realizar alguna limpieza si es necesario al desmontar el componente
       document.body.removeChild(script);
     };
-  }, [])
+  }, [canvas]);
 
 
   const onFinish = (values: any) => {
@@ -162,8 +168,12 @@ const paginacion = () => {
 
 
   const [form] = Form.useForm();
+
+  if (loadingPage) return <Loading />;
+
+
   return (
-    <React.Suspense>
+    <React.Suspense fallback={<Loading />}>
       <Row gutter={16} style={{ padding: "0px 12px" }}>
 
         <Col className="gutter-row" xs={24} sm={24} md={12} lg={6}>
