@@ -33,7 +33,7 @@ export default function RootLayout({
               style={{ flex: 1, minWidth: 0 }}
             /> */}
           </Header>
-          <Content style={{ padding: '0 48px' }}>
+          <Content style={{ padding: '0 12px' }}>
             {/*             <Breadcrumb style={{ margin: '16px 0' }}>
               <Breadcrumb.Item>Home</Breadcrumb.Item>
               <Breadcrumb.Item>List</Breadcrumb.Item>

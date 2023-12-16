@@ -125,9 +125,14 @@ const paginacion = () => {
       setLoading(false);
       // Mostrar el PDF paginado en el iframe
       const pdfViewer: any = document.getElementById('pdfViewer');
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(blob);
-      pdfViewer.src = blobUrl;
+      /* const blob = new Blob([pdfBytes], { type: 'application/pdf' }); */
+      // Guardar el PDF en un archivo
+      const pdfFile = new File([pdfBytes], 'nombre-del-archivo.pdf', { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(pdfFile);
+      console.log('blobUrl', blobUrl)
+      pdfViewer.src = blobUrl//`https://docs.google.com/viewer?url=${blobUrl}`;
+
+
     };
     reader.readAsArrayBuffer(file);
   };
