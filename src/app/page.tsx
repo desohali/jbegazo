@@ -125,12 +125,27 @@ const paginacion = () => {
       setLoading(false);
       // Mostrar el PDF paginado en el iframe
       const pdfViewer: any = document.getElementById('pdfViewer');
-      /* const blob = new Blob([pdfBytes], { type: 'application/pdf' }); */
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       // Guardar el PDF en un archivo
-      const pdfFile = new File([pdfBytes], 'nombre-del-archivo.pdf', { type: 'application/pdf' });
-      const blobUrl = URL.createObjectURL(pdfFile);
-      console.log('blobUrl', blobUrl)
-      pdfViewer.src = blobUrl//`https://docs.google.com/viewer?url=${blobUrl}`;
+      const blobUrl = URL.createObjectURL(blob);
+      pdfViewer.src = blobUrl;//`https://docs.google.com/viewer?url=${blobUrl}`;
+
+      // Crear un enlace para descargar el PDF
+      const downloadLink = document.createElement('a');
+      downloadLink.href = blobUrl;
+      const [file] = refPdf.current.files;
+      downloadLink.download = file.name; // Nombre del archivo que se descargará
+
+      // Agregar el enlace al cuerpo del documento
+      document.body.appendChild(downloadLink);
+
+      // Simular clic en el enlace para descargar automáticamente
+      downloadLink.click();
+
+      // Eliminar el enlace después de un breve retraso (por ejemplo, 2 segundos)
+      setTimeout(() => {
+        document.body.removeChild(downloadLink);
+      }, 1000);
 
 
     };
