@@ -19,10 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
+      <meta name="theme-color" content="#212529" />
       <body className={inter.className}>
 
         <Layout>
-          <Header style={{ display: 'flex', alignItems: 'center' }}>
+          <Header style={{ display: 'flex', alignItems: 'center', background: "#212529" }}>
             <div className="demo-logo" />
             <Title style={{ color: "white", textAlign: "center", width: "100%" }} level={3}>jbegazo paginar</Title>
             {/* <Menu
