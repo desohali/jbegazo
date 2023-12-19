@@ -1,17 +1,17 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { Button, Layout, Menu, Tooltip } from 'antd'
-import { Footer, Header, Content } from 'antd/es/layout/layout'
-import Title from 'antd/es/typography/Title'
-import ButtonMail from './ButtonMail'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Layout } from 'antd';
+import { Footer, Header, Content } from 'antd/es/layout/layout';
+import Title from 'antd/es/typography/Title';
+import ButtonMail from './ButtonMail';
 
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Jbegazo App',
-  description: 'Jbegazo, es una app para numerar paginas de un archivo pdf',
+  title: 'Jbegazo-paginar',
+  description: 'Jbegazo-paginar, es una app para numerar páginas de un archivo pdf',
 }
 
 export default function RootLayout({
@@ -22,13 +22,14 @@ export default function RootLayout({
   return (
     <html lang="es">
       <meta name="theme-color" content="#212529" />
+      <link rel="manifest" href="/manifest.json" />
       <body className={inter.className}>
 
         <Layout>
           <Header style={{ display: 'flex', alignItems: 'center', background: "#212529" }}>
             <div className="demo-logo" />
             <ButtonMail />
-            <Title style={{ color: "white", textAlign: "center", width: "100%" }} level={3}>jbegazo paginar</Title>
+            <Title style={{ color: "white", textAlign: "center", width: "100%" }} level={3}>Jbegazo-paginar</Title>
             {/* <Menu
               theme="dark"
               mode="horizontal"
