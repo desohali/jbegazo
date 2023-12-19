@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { Layout, Menu } from 'antd'
+import { Button, Layout, Menu, Tooltip } from 'antd'
 import { Footer, Header, Content } from 'antd/es/layout/layout'
 import Title from 'antd/es/typography/Title'
+import ButtonMail from './ButtonMail'
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +27,7 @@ export default function RootLayout({
         <Layout>
           <Header style={{ display: 'flex', alignItems: 'center', background: "#212529" }}>
             <div className="demo-logo" />
+            <ButtonMail />
             <Title style={{ color: "white", textAlign: "center", width: "100%" }} level={3}>jbegazo paginar</Title>
             {/* <Menu
               theme="dark"
@@ -43,14 +46,19 @@ export default function RootLayout({
             <div
               style={{
                 background: "white",
-                minHeight: "100vh",
+                minHeight: "80vh",
                 padding: "0px",
               }}
             >
               {children}
             </div>
           </Content>
-          <Footer style={{ textAlign: 'center' }}>Ant Design ©2023 Created by Ant UED</Footer>
+          <Footer style={{ textAlign: 'center' }}>
+            <Title style={{ padding: "0px", margin: "0px" }} level={5}>Copyright ©2023 | Jbegazo-paginar</Title>
+            <Title style={{ padding: "0px", margin: "0px" }} level={5}>
+              Todos los derechos reservados. Aplicación desarrollada por, Robinson Alonso Jimenez Vegaso.
+            </Title>
+          </Footer>
         </Layout>
 
 

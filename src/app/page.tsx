@@ -1,11 +1,14 @@
 "use client";
-import { Alert, Button, Col, Divider, Flex, FloatButton, Form, Input, InputNumber, Progress, Row, Select, Spin, Typography } from 'antd';
+import { Alert, Button, Col, Divider, Flex, FloatButton, Form, Input, InputNumber, Progress, Row, Select, Spin, Switch, Typography } from 'antd';
 import * as React from 'react';
 import swal from 'sweetalert';
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 import { FilePdfOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import Loading from './loading';
 
+/* import * as PDFJSWorker from 'pdfjs-dist/build/pdf.worker'; */
+import { createCanvas, loadImage } from 'canvas';
+import { TextAlignment, degrees } from 'pdf-lib';
 
 
 // Declara la variable global de la librería para que TypeScript no arroje errores
@@ -34,20 +37,20 @@ const getCoordinates = (width: number, height: number, position: string) => {
   let XY: any = { x: 0, y: 0 };
   switch (position) {
     case 'si':
-      XY.x = 50;
-      XY.y = height - 50;
+      XY.x = 25;
+      XY.y = height - 25;
       break;
     case 'sd':
       XY.x = width - 150;
-      XY.y = height - 50;
+      XY.y = height - 25;
       break;
     case 'ii':
-      XY.x = 50;
-      XY.y = 50;
+      XY.x = 25;
+      XY.y = 25;
       break;
     case 'id':
       XY.x = width - 150;
-      XY.y = 50;
+      XY.y = 25;
       break;
   }
   return XY;
@@ -143,61 +146,162 @@ const paginacion = () => {
   const paginarPDF = (file: any) => {
     setLoading(true);
     setPaginas(0);
-
     const reader = new FileReader();
     reader.onload = async function (event: any) {
+
       const typedArray = new Uint8Array(event.target.result);
+
+
       const pdfDoc = await PDFDocument.create();
       const font = await pdfDoc.embedFont(StandardFonts[form.getFieldValue("letra")]);
+      const filePDF = await PDFDocument.load(typedArray);
+      ////////////////////////////////////////////////////////////////////////////////
+      const pdfDocHeader = await PDFDocument.create();
+      /* const pdfDocBody = await PDFDocument.create(); */
+      const pdfDocFooter = await PDFDocument.create();
+      const [paginaInicio, paginaFinal] = [
+        Number(form.getFieldValue("paginaInicio")),
+        Number(form.getFieldValue("paginaFinal"))
+      ];
 
-      const loadingTask = window.pdfjsLib.getDocument(typedArray);
-      const pdf = await loadingTask.promise;
+      let index = 1, numeroInicio = input ?
+        (Number(form.getFieldValue("numeroInicio")) + (paginaFinal - paginaInicio)) :
+        Number(form.getFieldValue("numeroInicio"));
 
-      let index = 1, numeroInicio = Number(form.getFieldValue("numeroInicio"));
-      const arrayCeros = Array(pdf.numPages).fill(0);
-      for (const cero of arrayCeros) {
-        if (index < Number(form.getFieldValue("paginaInicio")) || index > Number(form.getFieldValue("paginaFinal"))) {
+      if (paginaInicio > 1) {
+        // Copia las páginas del documento original al nuevo documento
+        const pageIndicesToCopy = Array.from({ length: (paginaInicio - 1) }, (_, index) => index);
+        const copiedPages = await pdfDocHeader.copyPages(filePDF, pageIndicesToCopy);
+
+        copiedPages.forEach((page: any) => {
+          pdfDocHeader.addPage(page);
+        });
+      }
+
+      if (paginaFinal < filePDF.getPages().length) {
+        // Copia las páginas del documento original al nuevo documento
+        const pageIndicesToCopy = Array.from({ length: (filePDF.getPages().length - paginaFinal) }, (_, index) => (paginaFinal + index));
+        const copiedPages = await pdfDocFooter.copyPages(filePDF, pageIndicesToCopy);
+
+        copiedPages.forEach((page: any) => {
+          pdfDocFooter.addPage(page);
+        });
+      }
+      ////////////////////////////////////////////////////////////////////////////////
+
+      let page;
+      for (const p of filePDF.getPages()) {
+        if (index < paginaInicio || index > paginaFinal) {
           index++;
           continue;
         }
-        const pageNumber = index; // Número de página a mostrar
-        const page = await pdf.getPage(pageNumber);
-        const viewport = page.getViewport({ scale: 1.5 });
-
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        await page.render({
-          canvasContext: ctx,
-          viewport: viewport
-        }).promise;
-
-        const imgData = canvas.toDataURL('image/png', 0.9);
-        const pngImage = await pdfDoc.embedPng(imgData);
-        const newPage = pdfDoc.addPage([viewport.width, viewport.height]);
-        newPage.drawImage(pngImage, {
-          x: 0,
-          y: 0,
-          width: pngImage.width,
-          height: pngImage.height,
-        });
-
-        const { x, y } = getCoordinates(pngImage.width, pngImage.height, form.getFieldValue("posicion"));
+        const { x, y, width, height } = p.getMediaBox();
         const { r, g, b } = hexToRgb(form.getFieldValue("color"));
-        newPage.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-(${numeroEnLetras(numeroInicio)})`.trim(), {
-          x,
-          y,
-          size: Number(form.getFieldValue("tamanio")),
-          font,
-          color: rgb(r, g, b)
-        });
+
+        if (p.getRotation().angle === 180) {
+          const preamble = await pdfDoc.embedPage(p, {
+            left: 0,
+            bottom: 0,
+            right: width + x,
+            top: height + y,
+          });
+
+          const preambleDims = preamble.scale(1);
+          page = pdfDoc.addPage([width, height]);
+          page.drawPage(preamble, {
+            ...preambleDims,
+            x: width + x,
+            y: height + y,
+            rotate: degrees(p.getRotation().angle)
+          });
+          const { x: xx, y: yy } = getCoordinates(width, height, form.getFieldValue("posicion"));
+          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${numeroEnLetras(numeroInicio)}`.trim(), {
+            x: xx,
+            y: yy,
+            size: Number(form.getFieldValue("tamanio")),
+            font,
+            color: rgb(r, g, b)
+          });
+
+        } else if (p.getRotation().angle === 0) {
+          const preamble = await pdfDoc.embedPage(p, {
+            left: 0,
+            bottom: 0,
+            right: width + x,
+            top: height + y,
+          });
+
+          const preambleDims = preamble.scale(1);
+          page = pdfDoc.addPage([width, height]);
+          page.drawPage(preamble, {
+            ...preambleDims,
+            x: -x,
+            y: -y,
+            rotate: degrees(p.getRotation().angle)
+          });
+          const { x: xx, y: yy } = getCoordinates(width, height, form.getFieldValue("posicion"));
+          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${numeroEnLetras(numeroInicio)}`.trim(), {
+            x: xx,
+            y: yy,
+            size: Number(form.getFieldValue("tamanio")),
+            font,
+            color: rgb(r, g, b)
+          });
+        } else if (p.getRotation().angle === 270) {
+          p.setRotation(degrees(0));
+          const { x, y, width, height } = p.getMediaBox()
+          const preamble = await pdfDoc.embedPage(p, {
+            left: 0,
+            bottom: 0,
+            right: width,
+            top: height,
+          });
+
+          const preambleDims = preamble.scale(1);
+          page = pdfDoc.addPage([height, width]);
+          page.drawPage(preamble, {
+            ...preambleDims,
+            x: height + y,
+            y: 0,
+            rotate: degrees(90)
+          });
+          const { x: xx, y: yy } = getCoordinates(height, width, form.getFieldValue("posicion"));
+          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${numeroEnLetras(numeroInicio)}`.trim(), {
+            x: xx,
+            y: yy,
+            size: Number(form.getFieldValue("tamanio")),
+            font,
+            color: rgb(r, g, b)
+          });
+        }
 
         setPaginas((n: number) => (n + 1));
-        numeroInicio++;
+
+        if (input) {
+          numeroInicio--;
+        } else {
+          numeroInicio++;
+        }
         index++;
       }
 
-      const pdfBytes = await pdfDoc.save();
+
+      const mergedPdfDoc = await PDFDocument.create();
+      const pagesFromPdf1 = await mergedPdfDoc.copyPages(pdfDocHeader, pdfDocHeader.getPageIndices());
+      pagesFromPdf1.forEach((page: any) => {
+        mergedPdfDoc.addPage(page);
+      });
+      const pagesFromPdf2 = await mergedPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+      pagesFromPdf2.forEach((page: any) => {
+        mergedPdfDoc.addPage(page);
+      });
+      const pagesFromPdf3 = await mergedPdfDoc.copyPages(pdfDocFooter, pdfDocFooter.getPageIndices());
+      pagesFromPdf3.forEach((page: any) => {
+        mergedPdfDoc.addPage(page);
+      });
+
+      const pdfBytes = await mergedPdfDoc.save();
+
 
       setLoading(false);
       // Mostrar el PDF paginado en el iframe
@@ -206,6 +310,8 @@ const paginacion = () => {
       // Guardar el PDF en un archivo
       const blobUrl = URL.createObjectURL(blob);
       pdfViewer.src = blobUrl;//`https://docs.google.com/viewer?url=${blobUrl}`;
+
+
 
       /* // Crear un enlace para descargar el PDF
       const downloadLink = document.createElement('a');
@@ -255,7 +361,6 @@ const paginacion = () => {
 
 
   const onFinish = (values: any) => {
-
     if (!Boolean(refPdf.current?.files.length)) {
       swal("", "Primero debe cargar su archivo.pdf", "info");
       return;
@@ -265,7 +370,7 @@ const paginacion = () => {
 
 
   const [form] = Form.useForm();
-
+  const [input, setInput] = React.useState(false);
   if (loadingPage) return <Loading />;
 
 
@@ -313,7 +418,7 @@ const paginacion = () => {
         </Col>
         <Col className="gutter-row" xs={24} sm={24} md={12} lg={18}>
 
-          <div style={{ width: "100%", display: !loadingFoliar ? "none" : "" }}>
+          <div style={{ width: "100%", display: !loadingFoliar ? "none" : ""  }}>
             <Alert
               style={{ margin: "1rem 0rem" }}
               message="El archivo pdf está listo para ser foliado"
@@ -326,11 +431,12 @@ const paginacion = () => {
                 numeroInicio: 1,
                 paginaInicio: 1,
                 paginaFinal: 1,
-                posicion: "sd",
+                posicion: "si",
                 letra: "Courier",
                 tamanio: "12",
                 color: "#000000",
-                abreviatura: ""
+                abreviatura: "",
+                reverse: false
               }}
               style={{ width: "100%" }}
               layout="horizontal"
@@ -423,6 +529,17 @@ const paginacion = () => {
                     <Input style={{ width: "100%" }} />
                   </Form.Item>
                 </Col>
+                <Col className="gutter-row" xs={12} sm={12} md={8} lg={8}>
+                  <Form.Item
+                    style={{ width: "100%" }}
+                    name="reverse"
+                    label="Reverso"
+                  >
+                    <Switch checked={input} onChange={() => {
+                      setInput(!input)
+                    }} />
+                  </Form.Item>
+                </Col>
                 <Col className="gutter-row" xs={24} sm={24} md={8} lg={8}>
                 </Col>
                 <Col span={24}>
@@ -467,7 +584,6 @@ const paginacion = () => {
               }
 
             }} />
-            <canvas ref={refCanvas} style={{ width: "100%", display: "none" }}></canvas>
           </div>
 
           <div style={{ width: "100%", height: "100vh", display: !loadingFoliar ? "none" : "" }}>
