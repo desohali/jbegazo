@@ -5,10 +5,7 @@ import swal from 'sweetalert';
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 import { FilePdfOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import Loading from './loading';
-
-/* import * as PDFJSWorker from 'pdfjs-dist/build/pdf.worker'; */
-import { createCanvas, loadImage } from 'canvas';
-import { TextAlignment, degrees } from 'pdf-lib';
+import {  degrees } from 'pdf-lib';
 
 
 // Declara la variable global de la librería para que TypeScript no arroje errores
@@ -102,6 +99,10 @@ const numeroEnLetras = (numero: number): string => {
     return 'Número fuera del rango soportado';
   }
 };
+
+function primeraLetraMayuscula(texto:string) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
 
 
 const paginacion = () => {
@@ -215,7 +216,7 @@ const paginacion = () => {
             rotate: degrees(p.getRotation().angle)
           });
           const { x: xx, y: yy } = getCoordinates(width, height, form.getFieldValue("posicion"));
-          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${numeroEnLetras(numeroInicio)}`.trim(), {
+          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim(), {
             x: xx,
             y: yy,
             size: Number(form.getFieldValue("tamanio")),
@@ -240,7 +241,7 @@ const paginacion = () => {
             rotate: degrees(p.getRotation().angle)
           });
           const { x: xx, y: yy } = getCoordinates(width, height, form.getFieldValue("posicion"));
-          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${numeroEnLetras(numeroInicio)}`.trim(), {
+          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim(), {
             x: xx,
             y: yy,
             size: Number(form.getFieldValue("tamanio")),
@@ -266,7 +267,7 @@ const paginacion = () => {
             rotate: degrees(90)
           });
           const { x: xx, y: yy } = getCoordinates(height, width, form.getFieldValue("posicion"));
-          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${numeroEnLetras(numeroInicio)}`.trim(), {
+          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim(), {
             x: xx,
             y: yy,
             size: Number(form.getFieldValue("tamanio")),

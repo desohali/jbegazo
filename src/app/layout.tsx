@@ -56,7 +56,7 @@ export default function RootLayout({
           <Footer style={{ textAlign: 'center' }}>
             <Title style={{ padding: "0px", margin: "0px" }} level={5}>Copyright ©2023 | Jbegazo-paginar</Title>
             <Title style={{ padding: "0px", margin: "0px" }} level={5}>
-              Todos los derechos reservados. Aplicación desarrollada por, Robinson Alonso Jimenez Vegaso.
+              Todos los derechos reservados. Aplicación desarrollada por Robinson Alonso Jimenez Begazo.
             </Title>
           </Footer>
         </Layout>
