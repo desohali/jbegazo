@@ -432,9 +432,9 @@ const paginacion = () => {
                 numeroInicio: 1,
                 paginaInicio: 1,
                 paginaFinal: 1,
-                posicion: "si",
-                letra: "Courier",
-                tamanio: "12",
+                posicion: "id",
+                letra: "CourierBold",
+                tamanio: "18",
                 color: "#000000",
                 abreviatura: "",
                 reverse: false
