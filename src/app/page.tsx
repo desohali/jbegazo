@@ -5,7 +5,7 @@ import swal from 'sweetalert';
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 import { FilePdfOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import Loading from './loading';
-import {  degrees } from 'pdf-lib';
+import { degrees } from 'pdf-lib';
 
 
 // Declara la variable global de la librería para que TypeScript no arroje errores
@@ -30,24 +30,26 @@ function hexToRgb(hex: string) {
 
   return { r, g, b };
 }
-const getCoordinates = (width: number, height: number, position: string) => {
-  let XY: any = { x: 0, y: 0 };
+const getCoordinates = (width: number, height: number, position: string, { font, text, fontSize }: any) => {
+  let XY: any = { x: 0, y: 0 }, textWidth;
   switch (position) {
     case 'si':
-      XY.x = 25;
-      XY.y = height - 25;
+      XY.x = 15;
+      XY.y = height - 15;
       break;
     case 'sd':
-      XY.x = width - 150;
-      XY.y = height - 25;
+      textWidth = font.widthOfTextAtSize(text, fontSize);
+      XY.x = width - (textWidth + 15);
+      XY.y = height - 15;
       break;
     case 'ii':
-      XY.x = 25;
-      XY.y = 25;
+      XY.x = 15;
+      XY.y = 15;
       break;
     case 'id':
-      XY.x = width - 150;
-      XY.y = 25;
+      textWidth = font.widthOfTextAtSize(text, fontSize);
+      XY.x = width - (textWidth + 15);
+      XY.y = 15;
       break;
   }
   return XY;
@@ -100,7 +102,7 @@ const numeroEnLetras = (numero: number): string => {
   }
 };
 
-function primeraLetraMayuscula(texto:string) {
+function primeraLetraMayuscula(texto: string) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
@@ -198,6 +200,7 @@ const paginacion = () => {
         }
         const { x, y, width, height } = p.getMediaBox();
         const { r, g, b } = hexToRgb(form.getFieldValue("color"));
+        const text = `${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim();
 
         if (p.getRotation().angle === 180) {
           const preamble = await pdfDoc.embedPage(p, {
@@ -215,8 +218,16 @@ const paginacion = () => {
             y: height + y,
             rotate: degrees(p.getRotation().angle)
           });
-          const { x: xx, y: yy } = getCoordinates(width, height, form.getFieldValue("posicion"));
-          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim(), {
+          const { x: xx, y: yy } = getCoordinates(
+            width,
+            height,
+            form.getFieldValue("posicion"),
+            {
+              font,
+              text,
+              fontSize: Number(form.getFieldValue("tamanio"))
+            });
+          page.drawText(text, {
             x: xx,
             y: yy,
             size: Number(form.getFieldValue("tamanio")),
@@ -240,8 +251,16 @@ const paginacion = () => {
             y: -y,
             rotate: degrees(p.getRotation().angle)
           });
-          const { x: xx, y: yy } = getCoordinates(width, height, form.getFieldValue("posicion"));
-          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim(), {
+          const { x: xx, y: yy } = getCoordinates(
+            width,
+            height,
+            form.getFieldValue("posicion"),
+            {
+              font,
+              text,
+              fontSize: Number(form.getFieldValue("tamanio"))
+            });
+          page.drawText(text, {
             x: xx,
             y: yy,
             size: Number(form.getFieldValue("tamanio")),
@@ -266,8 +285,16 @@ const paginacion = () => {
             y: 0,
             rotate: degrees(90)
           });
-          const { x: xx, y: yy } = getCoordinates(height, width, form.getFieldValue("posicion"));
-          page.drawText(`${form.getFieldValue("abreviatura")} ${numeroInicio}-${primeraLetraMayuscula(numeroEnLetras(numeroInicio))}`.trim(), {
+          const { x: xx, y: yy } = getCoordinates(
+            height,
+            width,
+            form.getFieldValue("posicion"),
+            {
+              font,
+              text,
+              fontSize: Number(form.getFieldValue("tamanio"))
+            });
+          page.drawText(text, {
             x: xx,
             y: yy,
             size: Number(form.getFieldValue("tamanio")),
@@ -419,7 +446,7 @@ const paginacion = () => {
         </Col>
         <Col className="gutter-row" xs={24} sm={24} md={12} lg={18}>
 
-          <div style={{ width: "100%", display: !loadingFoliar ? "none" : ""  }}>
+          <div style={{ width: "100%", display: !loadingFoliar ? "none" : "" }}>
             <Alert
               style={{ margin: "1rem 0rem" }}
               message="El archivo pdf está listo para ser foliado"
